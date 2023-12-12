@@ -1,13 +1,8 @@
 package Days;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.StandardSocketOptions;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Eight {
 
@@ -16,7 +11,7 @@ public class Eight {
 
     public static void main(String[] args) {
 
-        String filePath = "C:\\Users\\Timo\\IdeaProjects\\AdventOfCode2023\\src\\InputFiles\\input_8";
+        String filePath = "C:\\Users\\Timo\\IdeaProjects\\AdventOfCode2023\\src\\InputFiles\\input_test";
 
         int count = 0;
 
@@ -35,6 +30,52 @@ public class Eight {
             e.printStackTrace();
         }
 
+//        System.out.println("Part one: " + partOne());
+        System.out.println(partTwo());
+    }
+
+    private static int partTwo() {
+        int result = 0;
+        List<String> addList = new ArrayList<>();
+        for (String entry : searchMap.keySet()) {
+            if (entry.charAt(2) == 'A') {
+                addList.add(entry);
+            }
+        }
+        String[] keyList = addList.toArray(new String[0]);
+        while (true) {
+            boolean endZ = true;
+            for (int i = 0 ; i < pattern.length(); i++) {
+                char currentDir = pattern.charAt(i);
+
+                for (int j = 0; j < keyList.length; j ++) {
+                    String[] list = searchMap.get(keyList[j]);
+
+                    if (currentDir == 'L') {
+                        keyList[j] = list[0];
+                    } else {
+                        keyList[j] = list[1];
+                    }
+                }
+                result++;
+                System.out.println(Arrays.toString(keyList));
+
+                for (String key : keyList) {
+                    if (key.charAt(2) != 'Z') {
+                        endZ = false;
+                        break;
+                    }
+                }
+                if (endZ) break;
+            }
+            if (endZ) break;
+
+        }
+        return result;
+    }
+
+
+    private static int partOne() {
         String currentString = "AAA";
         int steps = 0;
 
@@ -57,10 +98,8 @@ public class Eight {
             }
         }
 
-        System.out.println(steps);
+        return steps;
     }
-
-
     private static void fillMap(String line) {
         String[] parts = line.split("\\W");
         ArrayList<String> patts = new ArrayList<>();
