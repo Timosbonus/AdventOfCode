@@ -17,6 +17,18 @@ for i in range(rows):
         if field[i][j] == "^":
             pos = [i, j]
 
+def turnRight(direction):
+    if direction == [-1, 0]: 
+        direction = [0, 1] 
+    elif direction == [0, 1]: 
+        direction = [1, 0]  
+    elif direction == [1, 0]: 
+        direction = [0, -1] 
+    elif direction == [0, -1]:
+        direction = [-1, 0]
+
+    return direction
+
 def firstGoldStar(pos):
     count = 0
     direction = [-1, 0]
@@ -25,14 +37,7 @@ def firstGoldStar(pos):
         if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
             break 
         if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
-            if direction == [-1, 0]: 
-                direction = [0, 1] 
-            elif direction == [0, 1]: 
-                direction = [1, 0]  
-            elif direction == [1, 0]: 
-                direction = [0, -1] 
-            elif direction == [0, -1]:
-                direction = [-1, 0]
+            direction = turnRight(direction)
         
         pos[0] += direction[0]
         pos[1] += direction[1]
@@ -44,144 +49,75 @@ def firstGoldStar(pos):
 
     return count
 
-
-def isReachable(field, pos, target, direction):
-    while pos != target:
-        # Check bounds and obstacles
-        if (pos[0] < 0 or pos[0] >= rows or pos[1] < 0 or pos[1] >= cols or 
-                field[pos[0]][pos[1]] == "#"):
-            return False
-        pos[0] += direction[0]
-        pos[1] += direction[1]
-    return True
-
-  
-
 def secondGoldStar(pos):
-
-
     count = 0
-    direction = [-1, 0]  # Initial direction
+    obstacleRowMap = dict()
+    obstacleColMap = dict()
 
-    rowTurnBook = dict()
-    colTurnBook = dict()
+    posObstacles = set()
 
-    while True:
 
-        # Break if out of bounds
-        if pos[0] + direction[0] < 0 or pos[0] + direction[0] >= rows or pos[1] + direction[1] < 0 or pos[1] + direction[1] >= cols:
-            break
-
-        # Change direction if hitting a wall
-        if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
-
-            # check, if col is in row
-            if pos[0] not in rowTurnBook:
-                rowTurnBook[pos[0]] = []
-            rowTurnBook[pos[0]].append(pos[1])
-
-            if pos[1] not in colTurnBook:
-                colTurnBook[pos[1]] = []
-            colTurnBook[pos[1]].append(pos[0])
-
-            if direction == [-1, 0]:
-                direction = [0, 1]
-            elif direction == [0, 1]:
-                direction = [1, 0]
-            elif direction == [1, 0]:
-                direction = [0, -1]
-            elif direction == [0, -1]:
-                direction = [-1, 0]
-
-        # Move and mark position
-        pos[0] += direction[0]
-        pos[1] += direction[1]
-        field[pos[0]][pos[1]] = "O"  # Mark as visited
-
-        if direction == [-1, 0] and pos[0] in rowTurnBook:
-            next_bigger = min((value for value in rowTurnBook[pos[0]] if value > pos[1]), default=-1)
-            if next_bigger != -1 and isReachable(field, pos.copy(), [pos[0], next_bigger], [0,1]): 
-                count+= 1
-        if direction == [1, 0] and pos[0] in rowTurnBook:
-            next_smaller = max((value for value in rowTurnBook[pos[0]] if value < pos[1]), default=-1)
-            if next_smaller != -1 and isReachable(field,pos.copy(), [pos[0], next_smaller], [0,-1]): 
-                count+= 1
-        if direction == [0, 1] and pos[1] in colTurnBook:
-            next_bigger = min((value for value in colTurnBook[pos[1]] if value > pos[0]), default=-1)
-            if next_bigger != -1 and isReachable(field, pos.copy(), [next_bigger, pos[1]], [1,0]):
-                count += 1
-        if direction == [0, -1] and pos[1] in colTurnBook:
-            next_smaller = max((value for value in colTurnBook[pos[1]] if value < pos[0]), default=-1)
-            if next_smaller != -1 and isReachable(field, pos.copy(), [next_smaller, pos[1]], [-1,0]):
-                count += 1
-        
-
-    return count
-
-def checkPath(pos, direction):
-    encounteredCoords = set()
-    encounteredCoords.add(tuple(pos))  # Ensure coordinates are hashable
-
-    while True:
-        if tuple(pos) in encounteredCoords:
-            return True
-        encounteredCoords.add(tuple(pos))
-
-        if direction == [-1, 0]:
-            direction = [0, 1]
-        elif direction == [0, 1]:
-            direction = [1, 0]
-        elif direction == [1, 0]:
-            direction = [0, -1]
-        elif direction == [0, -1]:
-            direction = [-1, 0]
-
-        if pos[0] < 0 or pos[0] >= rows or pos[1] < 0 or pos[1] >= cols:
-            break  # Out of bounds
-
-        if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
-            if direction == [-1, 0]:
-                direction = [0, 1]
-            elif direction == [0, 1]:
-                direction = [1, 0]
-            elif direction == [1, 0]:
-                direction = [0, -1]
-            elif direction == [0, -1]:
-                direction = [-1, 0]
-
-        pos[0] += direction[0]
-        pos[1] += direction[1]
-
-    return False
-
-def secondBruteForce(pos):
-    count = 0
+    # walk every position
     direction = [-1, 0]
 
     while True:
-        if pos[0] + direction[0] < 0 or pos[0] + direction[0] >= rows or pos[1] + direction[1] < 0 or pos[1] + direction[1] >= cols:
-            break
-
-        if checkPath(pos.copy(), direction.copy()):
-            count += 1
-
+        if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
+            break 
         if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
-            if direction == [-1, 0]:
-                direction = [0, 1]
-            elif direction == [0, 1]:
-                direction = [1, 0]
-            elif direction == [1, 0]:
-                direction = [0, -1]
-            elif direction == [0, -1]:
-                direction = [-1, 0]
-
+            direction = turnRight(direction)
+        
         pos[0] += direction[0]
         pos[1] += direction[1]
 
+        if checkPath(pos.copy(), direction.copy()) and tuple(pos) not in posObstacles:
+            posObstacles.add(tuple(pos))
+            count += 1
+
+    # check depending on position and direction, if obstacle is in row or col
+
+
+    # if true -> checkPath(pos, direction)
+
+
+    # if checkPath returns True, add count
+
+
     return count
 
-#print("First Gold Star:", firstGoldStar(pos))
-print("Second Gold Star:", secondBruteForce(pos))
+
+def checkPath(pos, direction):
+    
+    # change direction
+    direction = turnRight(direction)
+
+    # save positions in a set
+
+    encounteredPositions = set()
+
+    # walk steps like in firstGoldStar
+
+    while True:
+        if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
+            return False
+         
+        if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
+            direction = turnRight(direction)
+
+        
+        pos[0] += direction[0]
+        pos[1] += direction[1]
+
+        # check if new position already in set
+        if tuple(pos) in encounteredPositions:
+            return True
+        
+        encounteredPositions.add(tuple(pos))
+
+
+
+print("First Gold Star:", firstGoldStar(pos.copy()))
+print("Second Gold Star:", secondGoldStar(pos.copy()))
+
 
 
 
