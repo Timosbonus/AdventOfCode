@@ -1,3 +1,5 @@
+import copy
+
 f = open("Input Files/input6.txt", "r")
 lines = f.readlines()
 
@@ -19,22 +21,23 @@ for i in range(rows):
 
 def turnRight(direction):
     if direction == [-1, 0]: 
-        direction = [0, 1] 
+        return [0, 1] 
     elif direction == [0, 1]: 
-        direction = [1, 0]  
+        return [1, 0]  
     elif direction == [1, 0]: 
-        direction = [0, -1] 
+        return [0, -1] 
     elif direction == [0, -1]:
-        direction = [-1, 0]
+        return [-1, 0]
 
-    return direction
+def is_out_of_bounds(pos, rows, cols):
+    return not (0 <= pos[0] < rows and 0 <= pos[1] < cols)
 
-def firstGoldStar(pos):
+def firstGoldStar(pos,field):
     count = 0
     direction = [-1, 0]
 
     while True:
-        if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
+        if pos[0] + direction[0] < 0 or pos[0] + direction[0] >= rows or pos[1] + direction[1] < 0 or pos[1] + direction[1] >= cols:
             break 
         if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
             direction = turnRight(direction)
@@ -47,57 +50,52 @@ def firstGoldStar(pos):
         field[pos[0]][pos[1]] = "O"
 
 
-    return count
+    return count + 1
 
-def secondGoldStar(pos):
+def secondGoldStar(pos,field):
     count = 0
-    obstacleRowMap = dict()
-    obstacleColMap = dict()
 
     posObstacles = set()
-
 
     # walk every position
     direction = [-1, 0]
 
     while True:
-        if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
-            break 
+        if is_out_of_bounds([pos[0] + direction[0], pos[1] + direction[1]], rows, cols):
+            return False
+
         if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
             direction = turnRight(direction)
         
+        posToCheck = pos.copy()
+        posToCheck[0] += direction[0]
+        posToCheck[1] += direction[1]       
+
+        if (0 <= posToCheck[0] < rows and 0 <= posToCheck[1] < cols) and field[posToCheck[0]][posToCheck[1]] == ".":
+            changedField = copy.deepcopy(field)
+            changedField[posToCheck[0]][posToCheck[1]] = "#"
+
+            # Check if this path leads to a loop
+            if checkPath(pos.copy(), direction.copy(), changedField):
+                posObstacles.add(tuple(posToCheck))
+                count += 1
+        
         pos[0] += direction[0]
         pos[1] += direction[1]
-
-        if checkPath(pos.copy(), direction.copy()) and tuple(pos) not in posObstacles:
-            posObstacles.add(tuple(pos))
-            count += 1
-
-    # check depending on position and direction, if obstacle is in row or col
-
-
-    # if true -> checkPath(pos, direction)
-
-
-    # if checkPath returns True, add count
-
-
+        
     return count
 
 
-def checkPath(pos, direction):
-    
+def checkPath(pos, direction, field):
     # change direction
     direction = turnRight(direction)
 
     # save positions in a set
-
     encounteredPositions = set()
 
     # walk steps like in firstGoldStar
-
     while True:
-        if pos[0] < 0 or pos[0] >= rows - 1 or pos[1] < 0 or pos[1] >= cols - 1:
+        if is_out_of_bounds([pos[0] + direction[0], pos[1] + direction[1]], rows, cols):
             return False
          
         if field[pos[0] + direction[0]][pos[1] + direction[1]] == "#":
@@ -108,15 +106,18 @@ def checkPath(pos, direction):
         pos[1] += direction[1]
 
         # check if new position already in set
-        if tuple(pos) in encounteredPositions:
-            return True
         
-        encounteredPositions.add(tuple(pos))
+        pos_tuple = (pos[0], pos[1], direction[0], direction[1])
+        if pos_tuple in encounteredPositions:
+            return True
+
+        encounteredPositions.add(pos_tuple)
+        
+    
 
 
-
-print("First Gold Star:", firstGoldStar(pos.copy()))
-print("Second Gold Star:", secondGoldStar(pos.copy()))
+print("First Gold Star:", firstGoldStar(pos.copy(), field.copy()))
+print("Second Gold Star:", secondGoldStar(pos.copy(), field.copy()))
 
 
 
