@@ -17,6 +17,26 @@ def processLine(line):
             s = addToList(".", int(line[i]), s)
     return s
 
+def getHoles(s):
+    holes = {}
+    currentHoleStart = None
+    currentHoleSize = 0
+    for i in range(len(s)):
+        if s[i] == ".":
+            if currentHoleStart is None:
+                currentHoleStart = i
+                currentHoleSize = 1
+            else:
+                currentHoleSize += 1
+        else:
+            if currentHoleStart is not None:
+                holes[currentHoleStart] = currentHoleSize
+                currentHoleStart = None
+                currentHoleSize = 0
+    if currentHoleStart is not None:
+        holes[currentHoleStart] = currentHoleSize
+    return holes
+
 def removeDots(s):
     lastIndex = len(s) - 1
     firstIndex = 0
@@ -40,34 +60,43 @@ def getBlockSize(s, lastIndex):
         size += 1
     return size
 
-def findFreeSpace(size, lastIndex, s):
-    for index in range(lastIndex - size):
-        subarray = s[index:index + size]
-        if all(char == "." for char in subarray):
-            return index + size - 1
-    return -1
+def findFreeSpace(size, holes, lastIndex):
+    sorted_holes = sorted(holes.items())
+    for start, hole_size in sorted_holes:
+        if start >= lastIndex: break
+        if hole_size >= size:
+            return start, hole_size
+    return None, None
         
     
 def move(newLocation, lastIndex, size, s):
     for i in range(size):
-        s[newLocation - i], s[lastIndex - i] = s[lastIndex - i], s[newLocation - i]
+        s[newLocation + i], s[lastIndex - i] = s[lastIndex - i], s[newLocation + i]
     return s
 
 
 def removeDotsTwo(s):
-    # find last block
+    holes = getHoles(s)
     lastIndex = len(s) - 1
-    while lastIndex >= 0:
-        if s[lastIndex] != ".":
-            size = getBlockSize(s, lastIndex)
-            newLocation = findFreeSpace(size, lastIndex, s)
-
-            if newLocation != -1:
-                s = move(newLocation, lastIndex, size, s)
-            else:
-                lastIndex -= size - 1
-        lastIndex -= 1
+    moved = set()
     
+    while lastIndex >= 0:
+        if s[lastIndex] != "." and s[lastIndex] not in moved:
+            moved.add(s[lastIndex])
+            size = getBlockSize(s, lastIndex)
+            newLocation, hole_size = findFreeSpace(size, holes, lastIndex)            
+
+            if newLocation is not None:
+                s = move(newLocation, lastIndex, size, s)
+               
+                
+                del holes[newLocation]
+                if size != hole_size:
+                    holes[newLocation + size] = hole_size - size
+
+
+        lastIndex -= 1
+
     return s
 
 def filesystemChecksum(s):
@@ -76,7 +105,6 @@ def filesystemChecksum(s):
         if s[i] == ".": continue
         count += i * int(s[i])
     return count
-
 
 
 def firstGoldStar(line):
