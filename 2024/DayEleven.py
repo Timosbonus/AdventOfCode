@@ -1,6 +1,5 @@
 from collections import Counter
 
-# Parse input and initialize counts
 def createCounter(line):
     return Counter(int(num) for num in line.split(" "))
 
@@ -28,7 +27,6 @@ def firstGoldStar(line, times):
     counter = createCounter(line)
     return processCounts(counter, times)
 
-# Input
 with open("Input Files/input11.txt", "r") as f:
     line = f.readline().strip()
 
