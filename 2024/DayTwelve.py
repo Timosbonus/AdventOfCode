@@ -31,16 +31,13 @@ def checkFencesCount(farm, areaCoords, charToCheck, rows, cols):
     return count
 
 
-# walk every outer index and check every direction change, but I dont know yet how to do it
 def checkSides(farm, areaCoords, charToCheck, rows, cols):
     count = 0
-    borderCoords = set()
-    for coord in areaCoords:
-        if checkSurroundings(coord, farm, charToCheck, rows, cols) > 0:
-            borderCoords.add(coord)
-
-    sortedBorders = sorted(borderCoords)
-    print(sortedBorders)
+    direction = [0, 1]
+    sortedBorders = sorted(areaCoords)
+    startPoint, curPlace = [sortedBorders[0][0] - 1, sortedBorders[0][1] - 1, direction[0], direction[1]], [sortedBorders[0][0] - 1 + direction[0], sortedBorders[0][1] - 1 + direction[1]]
+    print(curPlace)
+    
 
     return count
 
