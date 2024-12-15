@@ -38,6 +38,22 @@ def doubleMap(small_map):
 
     return warehouse_map
 
+def repairBoxLayout(robot, warehouse_map, direction):
+    curPos = robot.copy()
+    char = "["
+    if direction[1] == -1: char = "]"
+    curPos[1] += direction[1]
+
+    while True:
+        warehouse_map[robot[0]][curPos[1]] = char
+        curPos[1] += direction[1]
+        if char == "]":
+            char = "["
+        else:
+            char = "]"
+        if warehouse_map[robot[0]][curPos[1]] in ["#", "."]:
+            break
+        
 def checkAndPerformMove(robot, warehouse_map, direction):
     steps = robot.copy()
     while True:
@@ -51,19 +67,54 @@ def checkAndPerformMove(robot, warehouse_map, direction):
             robot[0], robot[1] = robot[0] + direction[0], robot[1] + direction[1]
             warehouse_map[robot[0]][robot[1]] = "@"
             return robot
+
+def checkOverlapWithBoxes(warehouse_map, direction, arrayOfCoordinates):
+    while True:   
+        for coord in arrayOfCoordinates[-1]:
+            newRow = set()
+            if warehouse_map[coord[0] + direction[0]][coord[1]] == "]":
+                newRow.add((coord[0] + direction[0], coord[1]))
+                newRow.add((coord[0] + direction[0], coord[1] - 1))
+            elif warehouse_map[coord[0] + direction[0]][coord[1]] == "[":
+                newRow.add((coord[0] + direction[0], coord[1]))
+                newRow.add((coord[0] + direction[0], coord[1] + 1))
+            elif warehouse_map[coord[0] + direction[0]][coord[1]] == "#":
+                return False
+        
+            if not newRow:
+                return True
+            arrayOfCoordinates.append(newRow)
         
 def checkAndPerformMoveTwo(robot, warehouse_map, direction):
-    steps = robot.copy()
-    if direction[0] == 0: return checkAndPerformMove(robot, warehouse_map, direction)
-    while True:
-        steps[0] += direction[0]
-        steps[1] += direction[1]
-        if warehouse_map[steps[0]][steps[1]] == "#":
-            return robot
-        ## always need to increase the size 
-        
+    # left and right
+    if direction[0] == 0 and warehouse_map[robot[0]][robot[1] + direction[1]] != ".":
+        robot = checkAndPerformMove(robot, warehouse_map, direction)
+        repairBoxLayout(robot, warehouse_map, direction)
+        return robot
+    elif direction[0] == 0:
+        warehouse_map[robot[0]][robot[1]] = "."
+        robot[1] += direction[1]
+        warehouse_map[robot[0]][robot[1]] = "@"
+        return robot
+    
+    # up and down
+    arrayOfCoordinates, startCoord = list(), set()
+    startCoord.add(tuple(robot))
+    arrayOfCoordinates.append(startCoord)
 
-        
+    if checkOverlapWithBoxes(warehouse_map, direction, arrayOfCoordinates):
+        for coord_set in arrayOfCoordinates:
+            print(coord_set)
+            for coord in coord_set:
+                warehouse_map[coord[0]][coord[1]] = warehouse_map[coord[0] + direction[0]][coord[1]]
+                warehouse_map[coord[0] - direction[0]][coord[1]] = "."
+                printWarehouseMap(warehouse_map)
+        robot[0] += direction[0]
+        warehouse_map[robot[0]][robot[1]] = "@"
+        return robot
+    return robot
+             
+             
 def getDirection(ins):
     direction = [0,0]
     if ins == "^":
@@ -84,7 +135,6 @@ def calculatePositions(warehouse_map):
                 count += 100 * i + j
     return count
 
-
 def firstGoldStar(lines):
     warehouse_map, instructions = createInputFiles(lines)
     robot = getRobotPosition(warehouse_map)
@@ -92,8 +142,7 @@ def firstGoldStar(lines):
     for ins in instructions:
         direction = getDirection(ins)
         if direction == [0,0]: continue
-        robot = checkAndPerformMove(robot, warehouse_map, direction)
-    
+        robot = checkAndPerformMove(robot, warehouse_map, direction)    
     return calculatePositions(warehouse_map)
 
 def secondGoldStar(lines):
@@ -102,14 +151,14 @@ def secondGoldStar(lines):
     robot = getRobotPosition(warehouse_map)
 
     for ins in instructions:
+        printWarehouseMap(warehouse_map)
         direction = getDirection(ins)
         if direction == [0,0]: continue
         robot = checkAndPerformMoveTwo(robot, warehouse_map, direction)
-
+        
+    printWarehouseMap(warehouse_map)
+    
     return calculatePositions(warehouse_map)
 
-    
-
-
-print("First Gold Star:" , firstGoldStar(lines))
-print("Second Gold Star:" , secondGoldStar(lines))
+print("First Gold Star:", firstGoldStar(lines))
+print("Second Gold Star:", secondGoldStar(lines))
