@@ -57,8 +57,6 @@ def checkForShortcuts(track, positions, save_amount):
                 
     return count
 
-
-
 def firstGoldStar(lines):
     track = createRaceTrack(lines)
     start = findPosition("S", track)
